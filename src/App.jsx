@@ -4,6 +4,32 @@ import { mealsData } from './mealsData';
 function App() {
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("all");
+    const [isButtonClicked, setIsButtonClicked] = useState(false);
+    const [newMeal, setNewMeal] = useState(
+        {
+            title: "",
+            category: "",
+            calories: "",
+            url: "",
+            recipe: ""
+        }
+    )
+    const [newMealsData, setNewMealsData] = useState(mealsData);
+
+    console.log(newMealsData);
+
+    function addMeal() {
+        const newId = newMealsData[newMealsData.length - 1].id + 1;
+        setNewMealsData(prev => [...prev, {...newMeal, id: newId}]);
+        setIsButtonClicked(prev => false);
+        setNewMeal(prev => ({
+            title: "",
+            category: "",
+            calories: "",
+            url: "",
+            recipe: ""
+        }))
+    }
 
     const uniqueCategory = ["all", ...new Set(mealsData.map(meal => meal.category))];
 
@@ -14,8 +40,6 @@ function App() {
 
         return matchesCategory && matchesSearch;
     });
-    
-    console.log(category);
 
     return (
         <div>
@@ -28,6 +52,20 @@ function App() {
                         <option key={index} value={category}>{category}</option>
                     ))}
                 </select>
+            </div>
+            <div>
+                <button onClick={() => setIsButtonClicked(prev => true)}>Add recipe</button>
+                    {isButtonClicked ? (
+                        <div style={{width: "1200px", height: "700px", backgroundColor: "green", zIndex: "10", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", margin: "auto 150px" }}>
+                            <input style={{width: "70%"}} placeholder='Title' onChange={(e) => setNewMeal(prev => ({...prev, title: e.target.value}))}></input>
+                            <input style={{width: "70%"}} placeholder='Category' onChange={(e) => setNewMeal(prev => ({...prev, category: e.target.value}))}></input>
+                            <input style={{width: "70%"}} placeholder='Calories' onChange={(e) => setNewMeal(prev => ({...prev, calories: e.target.value}))}></input>
+                            <input style={{width: "70%"}} placeholder='Url' onChange={(e) => setNewMeal(prev => ({...prev, url: e.target.value}))}></input>
+                            <textarea style={{width: "70%"}} placeholder='Recipe' onChange={(e) => setNewMeal(prev => ({...prev, recipe: e.target.value}))}></textarea>
+                            <button onClick={() => addMeal()}>Add</button>
+                            <button onClick={() => setIsButtonClicked(prev => false)}>Close</button>
+                        </div>
+                    ) : ""}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', width: '100%', maxWidth: "1200px", boxSizing: 'border-box', margin: "auto 150px" }}>
                 {filterMeals.length !== 0 ? (
