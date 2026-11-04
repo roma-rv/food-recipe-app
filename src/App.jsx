@@ -1,5 +1,4 @@
-import {useState} from 'react';
-import { mealsData } from './mealsData';
+import {useState, useEffect} from 'react';
 import MealCard from './MealCard'
 import Modal from './Modal'
 import MealForm from './MealForm'
@@ -7,7 +6,8 @@ import MealInfo from './MealInfo'
 
 function App() {
     const [search, setSearch] = useState("");
-    const [category, setCategory] = useState("all");
+    const [category, setCategory] = useState("All");
+    const [categoryData, setCategoryData] = useState([]);
     const [isButtonClicked, setIsButtonClicked] = useState(false);
     const [newMeal, setNewMeal] = useState(
         {
@@ -18,9 +18,37 @@ function App() {
             recipe: ""
         }
     )
-    const [newMealsData, setNewMealsData] = useState(mealsData);
+    const [newMealsData, setNewMealsData] = useState([]);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [chosenCard, setChosenCard] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const url = 'https://www.themealdb.com/api/json/v1/1/categories.php';
+
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {   
+            setCategoryData(data.categories);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (categoryData.length === 0) {
+            return;
+        }
+
+        Promise.all(categoryData.map(category => fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category.strCategory}`)
+            .then(response => response.json())
+            .then(data => (data.meals || []).map(meal => ({...meal, strCategory: category.strCategory})))    
+        )).then(results => {
+            setNewMealsData(results.flat());
+            setLoading(false);
+        });
+
+    }, [categoryData]);
+
+    if (loading) return <div>Loading list...</div>;
 
     function addMeal() {
         if (!newMeal.title) {
@@ -59,7 +87,7 @@ function App() {
 
     function deleteCard(id, e) {
         e.stopPropagation();
-        setNewMealsData(prev => prev.filter(meal => meal.id !== id));
+        setNewMealsData(prev => prev.filter(meal => meal.idMeal !== id));
     }
 
     function closeMealForm() {
@@ -82,23 +110,23 @@ function App() {
         setChosenCard(null);
     }
 
-    const uniqueCategory = ["all", ...new Set(newMealsData.map(meal => meal.category))];
+    const uniqueCategory = ["All", ...new Set(categoryData.map(meal => meal.strCategory))];
 
     const filterMeals = newMealsData.filter(meal => {
-        const matchesCategory = category === "all" || meal.category === category;
-        const matchesSearch = meal.title.toLowerCase().startsWith(search.toLowerCase());
-        return matchesCategory && matchesSearch;
+        const matchesCategory = category === "All" || meal.strCategory === category;
+        const matchesSearch = meal.strMeal.toLowerCase().startsWith(search.toLowerCase());
+        return matchesSearch && matchesCategory;
     });
 
     return (
         <div>
             <div>
-                <input style={{width: "70%", height: "20px", margin: "auto 150px 40px"}} onChange={(e) => setSearch(e.target.value)}/>
+                <input style={{width: "70%", height: "20px", margin: "0 auto", padding: "0 20px" }} onChange={(e) => setSearch(e.target.value)}/>
             </div>
             <div>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                    {uniqueCategory.map((category, index) => (
-                        <option key={index} value={category}>{category}</option>
+                    {uniqueCategory.map(category => (
+                        <option key={category} value={category}>{category}</option>
                     ))}
                 </select>
             </div>
@@ -117,10 +145,10 @@ function App() {
                 </Modal>
             ) : null}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', width: '100%', maxWidth: "1200px", boxSizing: 'border-box', margin: "auto 150px" }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', width: '100%', maxWidth: "1200px", boxSizing: 'border-box', margin: "0 auto", padding: "0 20px" }}>
                 {filterMeals.length !== 0 ? (
                     filterMeals.map(meal => (
-                        <MealCard key={meal.id} meal={meal} onOpen = {showAdditionalInfo} onDelete = {deleteCard}/>
+                        <MealCard key={meal.idMeal} meal={meal} onOpen = {showAdditionalInfo} onDelete = {deleteCard}/>
                     ))
                 ) : "No meals"}
             </div>
