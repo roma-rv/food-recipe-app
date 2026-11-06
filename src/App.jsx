@@ -7,7 +7,10 @@ import MealInfo from './MealInfo'
 function App() {
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All");
-    const [categoryData, setCategoryData] = useState([]);
+    const [categoryData, setCategoryData] = useState(() => {
+        let isDataLoaded = localStorage.getItem("categories");
+        return isDataLoaded ? JSON.parse(isDataLoaded) : null;
+    });
     const [isButtonClicked, setIsButtonClicked] = useState(false);
     const [newMeal, setNewMeal] = useState(
         {
@@ -18,25 +21,35 @@ function App() {
             recipe: ""
         }
     )
-    const [newMealsData, setNewMealsData] = useState([]);
+    const [newMealsData, setNewMealsData] = useState(() => {
+        let isDataLoaded = localStorage.getItem("meals");
+        return isDataLoaded ? JSON.parse(isDataLoaded) : [];
+    });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [chosenCard, setChosenCard] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => {
+        return !localStorage.getItem("meals");
+    });
 
     useEffect(() => {
+        if (categoryData !== null) return;
+        
         const url = 'https://www.themealdb.com/api/json/v1/1/categories.php';
 
         fetch(url)
         .then(response => response.json())
         .then(data => {   
             setCategoryData(data.categories);
+            localStorage.setItem("categories", JSON.stringify(data.categories));
+            // console.log(data.categories);
         });
-    }, []);
 
+    }, []);
+    
+    console.log(categoryData);
+    
     useEffect(() => {
-        if (categoryData.length === 0) {
-            return;
-        }
+        if (!categoryData || newMealsData.length > 0) return;
 
         Promise.all(categoryData.map(category => fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category.strCategory}`)
             .then(response => response.json())
@@ -44,9 +57,12 @@ function App() {
         )).then(results => {
             setNewMealsData(results.flat());
             setLoading(false);
+            localStorage.setItem("meals", JSON.stringify(results.flat()));
         });
 
     }, [categoryData]);
+
+    console.log(newMealsData);
 
     if (loading) return <div>Loading list...</div>;
 
@@ -87,7 +103,9 @@ function App() {
 
     function deleteCard(id, e) {
         e.stopPropagation();
-        setNewMealsData(prev => prev.filter(meal => meal.idMeal !== id));
+        const filteredArray = newMealsData.filter(meal => meal.idMeal !== id)
+        setNewMealsData(filteredArray);
+        localStorage.setItem("meals", JSON.stringify(filteredArray));
     }
 
     function closeMealForm() {
