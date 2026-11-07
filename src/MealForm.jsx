@@ -1,11 +1,11 @@
 function MealForm( { newMeal, isSubmitted, setNewMeal, addMeal, closeMealForm }) {
     return (
         <>
-            <input value={newMeal.title} style={{width: "70%", border: isSubmitted && newMeal.title === "" ? "1px solid red" : "1px solid black"}} placeholder='Title' onChange={(e) => setNewMeal(prev => ({...prev, title: e.target.value}))}></input>
-            <input value={newMeal.category} style={{width: "70%", border: isSubmitted && newMeal.category === "" ? "1px solid red" : "1px solid black"}} placeholder='Category' onChange={(e) => setNewMeal(prev => ({...prev, category: e.target.value}))}></input>
-            <input value={newMeal.calories} style={{width: "70%", border: isSubmitted && (!newMeal.calories || Number(newMeal.calories) < 0 || isNaN(newMeal.calories)) ? "1px solid red" : "1px solid black"}} placeholder='Calories' onChange={(e) => setNewMeal(prev => ({...prev, calories: e.target.value}))}></input>
-            <input value={newMeal.url} style={{width: "70%", border: isSubmitted && newMeal.url === "" ? "1px solid red" : "1px solid black"}} placeholder='Url' onChange={(e) => setNewMeal(prev => ({...prev, url: e.target.value}))}></input>
-            <textarea value={newMeal.recipe} style={{width: "70%", border: isSubmitted && newMeal.recipe === "" ? "1px solid red" : "1px solid black"}} placeholder='Recipe' onChange={(e) => setNewMeal(prev => ({...prev, recipe: e.target.value}))}></textarea>
+            <input value={newMeal.strArea} style={{width: "70%", border: isSubmitted && newMeal.strArea === "" ? "1px solid red" : "1px solid black"}} placeholder='Title' onChange={(e) => setNewMeal(prev => ({...prev, strArea: e.target.value}))}></input>
+            <input value={newMeal.strCategory} style={{width: "70%", border: isSubmitted && newMeal.strCategory === "" ? "1px solid red" : "1px solid black"}} placeholder='Category' onChange={(e) => setNewMeal(prev => ({...prev, strCategory: e.target.value}))}></input>
+            <input value={newMeal.strCountry} style={{width: "70%", border: isSubmitted && newMeal.strCountry === "" ? "1px solid red" : "1px solid black"}} placeholder='Country' onChange={(e) => setNewMeal(prev => ({...prev, strCountry: e.target.value}))}></input>
+            <input value={newMeal.strMeal} style={{width: "70%", border: isSubmitted && newMeal.strMeal === "" ? "1px solid red" : "1px solid black"}} placeholder='Meal' onChange={(e) => setNewMeal(prev => ({...prev, strMeal: e.target.value}))}></input>
+            <textarea value={newMeal.strMealThumb} style={{width: "70%", border: isSubmitted && newMeal.strMealThumb === "" ? "1px solid red" : "1px solid black"}} placeholder='url' onChange={(e) => setNewMeal(prev => ({...prev, strMealThumb: e.target.value}))}></textarea>
             <button onClick={() => addMeal()}>Add</button>
             <button onClick={() => closeMealForm()}>Close</button>
         </>

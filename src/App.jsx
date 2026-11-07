@@ -14,11 +14,11 @@ function App() {
     const [isButtonClicked, setIsButtonClicked] = useState(false);
     const [newMeal, setNewMeal] = useState(
         {
-            title: "",
-            category: "",
-            calories: "",
-            url: "",
-            recipe: ""
+            strArea: "",
+            strCategory: "",
+            strCountry: "",
+            strMeal: "",
+            strMealThumb: ""
         }
     )
     const [newMealsData, setNewMealsData] = useState(() => {
@@ -67,38 +67,40 @@ function App() {
     if (loading) return <div>Loading list...</div>;
 
     function addMeal() {
-        if (!newMeal.title) {
+        if (!newMeal.strArea) {
             setIsSubmitted(true);
             return;
         }
-        if (!newMeal.category) {
+        if (!newMeal.strCategory) {
             setIsSubmitted(true)
             return;
         }
-        if (!newMeal.calories || Number(newMeal.calories) < 0 || isNaN(newMeal.calories)) {
+        if (!newMeal.strCountry) {
             setIsSubmitted(true)
             return;
         }
-        if (!newMeal.url) {
+        if (!newMeal.strMeal) {
             setIsSubmitted(true)
             return;
         }
-        if (!newMeal.recipe) {
+        if (!newMeal.strMealThumb) {
             setIsSubmitted(true)
             return;
         }
 
-        const newId = newMealsData.length > 0 ? newMealsData[newMealsData.length - 1].id + 1 : 0;
-        setNewMealsData(prev => [...prev, {...newMeal, id: newId, calories: Number(newMeal.calories)}]);
+        const newId = newMealsData.length > 0 ? newMealsData[newMealsData.length - 1].idMeal + 1 : 0;
+        const updatedMealsData = [...newMealsData, {...newMeal, id: newId}]
+        setNewMealsData(updatedMealsData);
         setIsButtonClicked(false);
         setIsSubmitted(false);
         setNewMeal(prev => ({
-            title: "",
-            category: "",
-            calories: "",
-            url: "",
-            recipe: ""
+            strArea: "",
+            strCategory: "",
+            strCountry: "",
+            strMeal: "",
+            strMealThumb: ""
         }));
+        localStorage.setItem("meals", JSON.stringify(updatedMealsData));
     }
 
     function deleteCard(id, e) {
@@ -130,7 +132,7 @@ function App() {
 
     const uniqueCategory = ["All", ...new Set(categoryData.map(meal => meal.strCategory))];
 
-    const filterMeals = newMealsData.filter(meal => {
+    const filterMeals = newMealsData.slice(0, 10).filter(meal => {
         const matchesCategory = category === "All" || meal.strCategory === category;
         const matchesSearch = meal.strMeal.toLowerCase().startsWith(search.toLowerCase());
         return matchesSearch && matchesCategory;
