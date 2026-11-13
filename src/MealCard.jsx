@@ -5,8 +5,6 @@ function MealCard({ meal, onOpen, onDelete}) {
 
     const glowColor = '#41b334';
 
-    console.log("asdgasdgasdgsagd");
-
     return (
         <div style={{width: "250px", height: "310px", position: "relative", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", transition: "all 0.3s ease", boxShadow: isHovered ? `0 0 20px 5px ${glowColor}` : 'none', border: isHovered ? `1px solid ${glowColor}` : '1px solid transparent', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden'}} onClick={() => onOpen(meal)} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
             <span 
@@ -31,7 +29,7 @@ function MealCard({ meal, onOpen, onDelete}) {
             >
                 &times;
             </span>
-            <img style={{width: "100%", height: "180px", objectFir: "covers", display: "block", borderRadius: "10px"}} src={meal.strMealThumb} alt={meal.strMealThumb} />
+            <img style={{width: "100%", height: "180px", objectFit: "covers", display: "block", borderRadius: "10px"}} src={meal.strMealThumb} alt={meal.strMealThumb} />
             <h1 style={{display: "flex", justifyContent: "center", alignItems: "center"}}>{meal.strMeal}</h1>
         </div>
     )

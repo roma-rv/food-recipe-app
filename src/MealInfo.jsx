@@ -1,7 +1,9 @@
-function MealInfo({ recipe, closeRecipeForm }) {
+function MealInfo({ mealInfo, closeRecipeForm, loadingInfo }) {
+    console.log(mealInfo);
     return (
         <>
-            {Array.isArray(recipe) ? (<p>{recipe.map((rec, index) => <span key={index}>{`${index + 1}. ${rec}`}<br></br></span>)}</p>) : <p>{recipe}</p>}
+            <h1>{mealInfo.isCustom ? mealInfo.strMeal : (loadingInfo ? "Downloading" : mealInfo.meals[0].strMeal)}</h1>
+            <p>{mealInfo.isCustom ? mealInfo.strInstructions : (loadingInfo ? "Downloading" : mealInfo.meals[0].strInstructions)}</p>
             <span 
                 onClick={() => closeRecipeForm()}
                 style={{

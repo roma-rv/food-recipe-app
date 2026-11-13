@@ -1,8 +1,8 @@
 import {useState, useEffect} from 'react';
-import MealCard from './MealCard'
 import Modal from './Modal'
 import MealForm from './MealForm'
 import MealInfo from './MealInfo'
+import MealList from './MealList'
 
 function App() {
     const [search, setSearch] = useState("");
@@ -12,95 +12,166 @@ function App() {
         return isDataLoaded ? JSON.parse(isDataLoaded) : null;
     });
     const [isButtonClicked, setIsButtonClicked] = useState(false);
-    const [newMeal, setNewMeal] = useState(
-        {
-            strArea: "",
-            strCategory: "",
-            strCountry: "",
-            strMeal: "",
-            strMealThumb: ""
-        }
-    )
     const [newMealsData, setNewMealsData] = useState(() => {
         let isDataLoaded = localStorage.getItem("meals");
         return isDataLoaded ? JSON.parse(isDataLoaded) : [];
+    });
+    const [mealInfo, setMealInfo] = useState(() => {
+        let isDataLoaded = localStorage.getItem("mealsInfo");
+        return isDataLoaded ? JSON.parse(isDataLoaded) : null;
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [chosenCard, setChosenCard] = useState(null);
     const [loading, setLoading] = useState(() => {
         return !localStorage.getItem("meals");
     });
+    const [loadingCategory, setLoadingCategory] = useState(() => {
+        return !localStorage.getItem("categories");
+    });
+    const [error, setError] = useState(null);
+    const [loadingInfo, setLoadingInfo] = useState(false);
+    const [errorInfo, setErrorInfo] = useState(null);
 
     useEffect(() => {
         if (categoryData !== null) return;
         
-        const url = 'https://www.themealdb.com/api/json/v1/1/categories.php';
+        async function fetchCategories() {
+            try {
+                const response = await fetch('https://www.themealdb.com/api/json/v1/1/categories.php');
 
-        fetch(url)
-        .then(response => response.json())
-        .then(data => {   
-            setCategoryData(data.categories);
-            localStorage.setItem("categories", JSON.stringify(data.categories));
-            // console.log(data.categories);
-        });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch categories");
+                }
+
+                const data = await response.json();
+                setCategoryData(data.categories);
+                localStorage.setItem("categories", JSON.stringify(data.categories));
+                setLoadingCategory(false);
+                setError(null);
+            } catch (error) {
+                console.log(error);
+                setLoadingCategory(false);
+                setError(error.message);
+            }
+        }
+
+        fetchCategories();
 
     }, []);
-    
-    console.log(categoryData);
     
     useEffect(() => {
         if (!categoryData || newMealsData.length > 0) return;
 
-        Promise.all(categoryData.map(category => fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category.strCategory}`)
-            .then(response => response.json())
-            .then(data => (data.meals || []).map(meal => ({...meal, strCategory: category.strCategory})))    
-        )).then(results => {
-            setNewMealsData(results.flat());
-            setLoading(false);
-            localStorage.setItem("meals", JSON.stringify(results.flat()));
-        });
+        async function fetchMeals() {
+            try {
+                const results = await Promise.all(categoryData.map(async (category) => {
+                    const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category.strCategory}`);
+                    
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch meals");
+                    }
+
+                    const data = await response.json();
+
+                    return (data.meals || []).map(meal => ({...meal, strCategory: category.strCategory}));
+                }))
+
+                const meals = results.flat();
+                
+                setNewMealsData(meals);
+                localStorage.setItem("meals", JSON.stringify(meals));
+            } catch (error) {
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchMeals();
 
     }, [categoryData]);
 
-    console.log(newMealsData);
+    useEffect(() => {
+        if (!chosenCard) return;
 
-    if (loading) return <div>Loading list...</div>;
+        if (chosenCard.isCustom) {
+            setMealInfo(chosenCard);
+            setLoadingInfo(false);
+            setErrorInfo(null);
+            return;
+        };
 
-    function addMeal() {
+        const controller = new AbortController();
+        
+        setLoadingInfo(true);
+        setErrorInfo(null);
+
+        async function showInfo() {
+            try {
+                const response = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${chosenCard.strMeal}`, {signal: controller.signal});
+
+                console.log(response);
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch meal info");
+                }
+
+                const data = await response.json();
+
+                if (!data.meals) {
+                    throw new Error("Meal not found");
+                }
+
+                setMealInfo(data);
+                localStorage.setItem("mealInfoInstructions", JSON.stringify(data.meals[0].strInstructions));
+            } catch (error) {
+                setErrorInfo(error.message);
+            } finally {
+                setLoadingInfo(false);
+            }
+        }
+
+        showInfo();
+
+        return () => {
+            controller.abort();
+        }
+
+    }, [chosenCard]);
+
+    if (loadingCategory) return <div>Loading categories...</div>;
+    if (error) return <div>{error}</div>;
+    if (loading) return <div>Loading meals...</div>
+
+    function addMeal(newMeal) {
         if (!newMeal.strArea) {
             setIsSubmitted(true);
-            return;
+            return false;
         }
         if (!newMeal.strCategory) {
             setIsSubmitted(true)
-            return;
+            return false;
         }
         if (!newMeal.strCountry) {
             setIsSubmitted(true)
-            return;
+            return false;
         }
         if (!newMeal.strMeal) {
             setIsSubmitted(true)
-            return;
+            return false;
         }
-        if (!newMeal.strMealThumb) {
+        if (!newMeal.strInstructions) {
             setIsSubmitted(true)
-            return;
+            return false;
         }
 
-        const newId = newMealsData.length > 0 ? newMealsData[newMealsData.length - 1].idMeal + 1 : 0;
-        const updatedMealsData = [...newMealsData, {...newMeal, id: newId}]
+        const newId = Date.now();
+        const updatedMealsData = [...newMealsData, {...newMeal, idMeal: String(newId), isCustom: true}]
         setNewMealsData(updatedMealsData);
         setIsButtonClicked(false);
         setIsSubmitted(false);
-        setNewMeal(prev => ({
-            strArea: "",
-            strCategory: "",
-            strCountry: "",
-            strMeal: "",
-            strMealThumb: ""
-        }));
         localStorage.setItem("meals", JSON.stringify(updatedMealsData));
+        return true;
     }
 
     function deleteCard(id, e) {
@@ -112,29 +183,25 @@ function App() {
 
     function closeMealForm() {
         setIsSubmitted(false);
-        setNewMeal(prev => ({
-            title: "",
-            category: "",
-            calories: "",
-            url: "",
-            recipe: ""
-        }))
         setIsButtonClicked(false);
     }
 
     function showAdditionalInfo(meal) {
+        console.log(meal);
         setChosenCard(meal);
     }
 
     function closeRecipeForm() {
         setChosenCard(null);
+        setMealInfo(null);
+        setErrorInfo(null);
     }
 
-    const uniqueCategory = ["All", ...new Set(categoryData.map(meal => meal.strCategory))];
+    const uniqueCategory = ["All", ...new Set((categoryData || []).map(meal => meal.strCategory))];
 
-    const filterMeals = newMealsData.slice(0, 10).filter(meal => {
+    const filterMeals = newMealsData.filter(meal => {
         const matchesCategory = category === "All" || meal.strCategory === category;
-        const matchesSearch = meal.strMeal.toLowerCase().startsWith(search.toLowerCase());
+        const matchesSearch = meal.strMeal.toLowerCase().includes(search.toLowerCase());
         return matchesSearch && matchesCategory;
     });
 
@@ -154,24 +221,18 @@ function App() {
                 <button onClick={() => setIsButtonClicked(prev => true)}>Add recipe</button>
                     {isButtonClicked ? (
                         <Modal>
-                            <MealForm newMeal={newMeal} isSubmitted={isSubmitted} setNewMeal={setNewMeal} addMeal={addMeal} closeMealForm={closeMealForm} />
+                            <MealForm isSubmitted={isSubmitted} addMeal={addMeal} closeMealForm={closeMealForm} />
                         </Modal>
                     ) : null}
             </div>
 
-            {chosenCard ? (
+            {mealInfo ? (
                 <Modal>
-                    <MealInfo recipe={chosenCard.recipe} closeRecipeForm={closeRecipeForm} />
+                    <MealInfo mealInfo={mealInfo} closeRecipeForm={closeRecipeForm} loadingInfo={loadingInfo} />
                 </Modal>
-            ) : null}
+            ) : errorInfo}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', width: '100%', maxWidth: "1200px", boxSizing: 'border-box', margin: "0 auto", padding: "0 20px" }}>
-                {filterMeals.length !== 0 ? (
-                    filterMeals.map(meal => (
-                        <MealCard key={meal.idMeal} meal={meal} onOpen = {showAdditionalInfo} onDelete = {deleteCard}/>
-                    ))
-                ) : "No meals"}
-            </div>
+            <MealList filterMeals={filterMeals} showAdditionalInfo={showAdditionalInfo} deleteCard={deleteCard}/>
         </div>
     )
 }
