@@ -8,17 +8,29 @@ function App() {
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All");
     const [categoryData, setCategoryData] = useState(() => {
-        let isDataLoaded = localStorage.getItem("categories");
-        return isDataLoaded ? JSON.parse(isDataLoaded) : null;
+        try {
+            let isDataLoaded = localStorage.getItem("categories");
+            return isDataLoaded ? JSON.parse(isDataLoaded) : null;
+        } catch (error) {
+            return null;
+        }
     });
     const [isButtonClicked, setIsButtonClicked] = useState(false);
     const [newMealsData, setNewMealsData] = useState(() => {
-        let isDataLoaded = localStorage.getItem("meals");
-        return isDataLoaded ? JSON.parse(isDataLoaded) : [];
+        try {
+            let isDataLoaded = localStorage.getItem("meals");
+            return isDataLoaded ? JSON.parse(isDataLoaded) : [];
+        } catch (error) {
+            return [];
+        }
     });
     const [mealInfo, setMealInfo] = useState(() => {
-        let isDataLoaded = localStorage.getItem("mealsInfo");
-        return isDataLoaded ? JSON.parse(isDataLoaded) : null;
+        try {
+            let isDataLoaded = localStorage.getItem("mealsInfo");
+            return isDataLoaded ? JSON.parse(isDataLoaded) : null;
+        } catch (error) {
+            return null;
+        }
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [chosenCard, setChosenCard] = useState(null);
@@ -45,9 +57,13 @@ function App() {
 
                 const data = await response.json();
                 setCategoryData(data.categories);
-                localStorage.setItem("categories", JSON.stringify(data.categories));
                 setLoadingCategory(false);
                 setError(null);
+                try {
+                    localStorage.setItem("categories", JSON.stringify(data.categories));
+                } catch (error) {
+                    console.error("Failed to save categories:", error);
+                }
             } catch (error) {
                 console.log(error);
                 setLoadingCategory(false);
@@ -79,7 +95,12 @@ function App() {
                 const meals = results.flat();
                 
                 setNewMealsData(meals);
-                localStorage.setItem("meals", JSON.stringify(meals));
+                
+                try {
+                    localStorage.setItem("meals", JSON.stringify(meals));
+                } catch (error) {
+                    console.error("Failed to save meals:", error);
+                }
             } catch (error) {
                 setError(error.message);
             } finally {
@@ -123,10 +144,19 @@ function App() {
                 }
 
                 setMealInfo(data);
-                localStorage.setItem("mealInfoInstructions", JSON.stringify(data.meals[0].strInstructions));
+                try {
+                    localStorage.setItem("mealInfoInstructions", JSON.stringify(data.meals[0].strInstructions));
+                } catch (error) {
+                    console.error("Failed to save meal instructions:", error);
+                }
             } catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
+
                 setErrorInfo(error.message);
             } finally {
+                if (!controller.signal.aborted)
                 setLoadingInfo(false);
             }
         }
@@ -140,7 +170,9 @@ function App() {
     }, [chosenCard]);
 
     if (loadingCategory) return <div>Loading categories...</div>;
+
     if (error) return <div>{error}</div>;
+    
     if (loading) return <div>Loading meals...</div>
 
     function addMeal(newMeal) {
