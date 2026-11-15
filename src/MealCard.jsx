@@ -29,7 +29,7 @@ function MealCard({ meal, onOpen, onDelete}) {
             >
                 &times;
             </span>
-            <img style={{width: "100%", height: "180px", objectFit: "covers", display: "block", borderRadius: "10px"}} src={meal.strMealThumb} alt={meal.strMealThumb} />
+            <img style={{width: "100%", height: "180px", objectFit: "cover", display: "block", borderRadius: "10px"}} src={meal.strMealThumb} alt={meal.strMealThumb} />
             <h1 style={{display: "flex", justifyContent: "center", alignItems: "center"}}>{meal.strMeal}</h1>
         </div>
     )

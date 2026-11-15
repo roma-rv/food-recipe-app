@@ -3,6 +3,8 @@ import Modal from './Modal'
 import MealForm from './MealForm'
 import MealInfo from './MealInfo'
 import MealList from './MealList'
+import './addRecipeButton.css'
+import './categorySelect.css'
 
 function App() {
     const [search, setSearch] = useState("");
@@ -25,12 +27,15 @@ function App() {
         }
     });
     const [mealInfo, setMealInfo] = useState(() => {
-        try {
-            let isDataLoaded = localStorage.getItem("mealsInfo");
-            return isDataLoaded ? JSON.parse(isDataLoaded) : null;
-        } catch (error) {
-            return null;
-        }
+
+        return null;
+        // try {
+        //     let isDataLoaded = localStorage.getItem("mealsInfo");
+        //     return isDataLoaded ? JSON.parse(isDataLoaded) : null;
+        //     return null;
+        // } catch (error) {
+        //     return null;
+        // }
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [chosenCard, setChosenCard] = useState(null);
@@ -123,7 +128,8 @@ function App() {
         };
 
         const controller = new AbortController();
-        
+
+        setMealInfo(null);
         setLoadingInfo(true);
         setErrorInfo(null);
 
@@ -139,16 +145,16 @@ function App() {
 
                 const data = await response.json();
 
-                if (!data.meals) {
+                if (!Array.isArray(data.meals) || data.meals.length === 0) {
                     throw new Error("Meal not found");
                 }
 
                 setMealInfo(data);
-                try {
-                    localStorage.setItem("mealInfoInstructions", JSON.stringify(data.meals[0].strInstructions));
-                } catch (error) {
-                    console.error("Failed to save meal instructions:", error);
-                }
+                // try {
+                //     localStorage.setItem("mealInfoInstructions", JSON.stringify(data.meals[0].strInstructions));
+                // } catch (error) {
+                //     console.error("Failed to save meal instructions:", error);
+                // }
             } catch (error) {
                 if (error.name === "AbortError") {
                     return;
@@ -156,8 +162,9 @@ function App() {
 
                 setErrorInfo(error.message);
             } finally {
-                if (!controller.signal.aborted)
-                setLoadingInfo(false);
+                if (!controller.signal.aborted) {
+                    setLoadingInfo(false);
+                }
             }
         }
 
@@ -238,24 +245,35 @@ function App() {
     });
 
     return (
-        <div>
-            <div>
-                <input style={{width: "70%", height: "20px", margin: "0 auto", padding: "0 20px" }} onChange={(e) => setSearch(e.target.value)}/>
+        <div style={{
+            display: "flex",
+            flexDirection: "column",
+            padding: "20px",
+            gap: "20px"
+        }}>
+            <div style={{
+                display: "flex",
+                justifyContent: "center"
+            }}
+            >
+                <input style={{width: "70%", height: "40px", padding: "0 20px", border: "1px solid #D8D5CE", borderRadius: "10px", fontSize: "16px", outline: "none"}} onChange={(e) => setSearch(e.target.value)}/>
             </div>
-            <div>
-                <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                    {uniqueCategory.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                    ))}
-                </select>
-            </div>
-            <div>
-                <button onClick={() => setIsButtonClicked(prev => true)}>Add recipe</button>
-                    {isButtonClicked ? (
-                        <Modal>
-                            <MealForm isSubmitted={isSubmitted} addMeal={addMeal} closeMealForm={closeMealForm} />
-                        </Modal>
-                    ) : null}
+            <div style={{display: "flex", justifyContent: "space-between", width: "70%", margin: "0 auto"}}>
+                <div>
+                    <select className='category-select' value={category} onChange={(e) => setCategory(e.target.value)}>
+                        {uniqueCategory.map(category => (
+                            <option key={category} value={category}>{category}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <button className='add-recipe-button' onClick={() => setIsButtonClicked(prev => true)}>Add recipe</button>
+                        {isButtonClicked ? (
+                            <Modal>
+                                <MealForm isSubmitted={isSubmitted} addMeal={addMeal} closeMealForm={closeMealForm} />
+                            </Modal>
+                        ) : null}
+                </div>
             </div>
 
             {mealInfo ? (
