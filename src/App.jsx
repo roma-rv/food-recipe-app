@@ -3,6 +3,8 @@ import Modal from './Modal'
 import MealForm from './MealForm'
 import MealInfo from './MealInfo'
 import MealList from './MealList'
+import MealFavorites from './MealFavorites'
+import Favorite from './Favorite'
 import './addRecipeButton.css'
 import './categorySelect.css'
 
@@ -48,6 +50,13 @@ function App() {
     const [error, setError] = useState(null);
     const [loadingInfo, setLoadingInfo] = useState(false);
     const [errorInfo, setErrorInfo] = useState(null);
+    const [isOnFavorites, setIsOnFavorites] = useState(false);
+    const [dataFavorites, setDataFovorites] = useState([]);
+
+    const totalCount = dataFavorites.reduce((acc, meal) => {
+        acc += meal.count;
+        return acc;
+    }, 0);
 
     useEffect(() => {
         if (categoryData !== null) return;
@@ -236,6 +245,29 @@ function App() {
         setErrorInfo(null);
     }
 
+    function openFavorites() {
+        setIsOnFavorites(true);
+    }
+
+    function closeFavorites() {
+        setIsOnFavorites(false);
+    }
+
+    function addToFavorites(meal, e) {
+        e.stopPropagation();
+        const mealInFavorite = dataFavorites.some(mealInF => mealInF.idMeal === meal.idMeal);
+
+        console.log(dataFavorites);
+
+        if (mealInFavorite) {
+            setDataFovorites(prev => 
+                prev.map(mealInF => mealInF.idMeal === meal.idMeal ? {...mealInF, count: (mealInF.count || 1) + 1} : mealInF)
+            )
+            return;
+        }
+        setDataFovorites(prev => [...prev, {...meal, count: 1}])
+    }
+
     const uniqueCategory = ["All", ...new Set((categoryData || []).map(meal => meal.strCategory))];
 
     const filterMeals = newMealsData.filter(meal => {
@@ -282,7 +314,15 @@ function App() {
                 </Modal>
             ) : errorInfo}
 
-            <MealList filterMeals={filterMeals} showAdditionalInfo={showAdditionalInfo} deleteCard={deleteCard}/>
+            <Favorite openFavorites={openFavorites} totalCount={totalCount}/>
+
+            {isOnFavorites ? <Modal>
+                <MealFavorites closeFavorites={closeFavorites}/>
+            </Modal> : null}
+
+            <MealList filterMeals={filterMeals} showAdditionalInfo={showAdditionalInfo} deleteCard={deleteCard} addToFavorites={addToFavorites}/>
+
+
         </div>
     )
 }

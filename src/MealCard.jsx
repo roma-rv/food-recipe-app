@@ -1,6 +1,6 @@
 import {useState} from 'react';
 
-function MealCard({ meal, onOpen, onDelete}) {
+function MealCard({ meal, onOpen, onDelete, addToFavorites }) {
     const [isHovered, setIsHovered] = useState(false);
 
     const glowColor = '#41b334';
@@ -17,7 +17,7 @@ function MealCard({ meal, onOpen, onDelete}) {
                     fontSize: "20px",
                     fontWeight: "bold",
                     color: "black",
-                    backgroundColor: "rgba(197, 192, 192, 0.7)",
+                    backgroundColor: "rgba(15, 200, 89)",
                     borderRadius: "50%",
                     width: "24px",
                     height: "24px", 
@@ -26,8 +26,32 @@ function MealCard({ meal, onOpen, onDelete}) {
                     alignItems: "center",
                     zIndex: "2",
                 }}
+                title="Close"
             >
                 &times;
+            </span>
+            <span 
+                onClick={(e) => addToFavorites(meal, e)}
+                style={{
+                    position: "absolute",
+                    top: "40px",
+                    right: "10px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    color: "black",
+                    backgroundColor: "rgba(15, 200, 89)",
+                    borderRadius: "50%",
+                    width: "24px",
+                    height: "24px", 
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: "2",
+                }}
+                title="Add to favorites"
+                >
+                &#10004;
             </span>
             <img style={{width: "100%", height: "180px", objectFit: "cover", display: "block", borderRadius: "10px"}} src={meal.strMealThumb} alt={meal.strMealThumb} />
             <h1 style={{display: "flex", justifyContent: "center", alignItems: "center"}}>{meal.strMeal}</h1>
