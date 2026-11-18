@@ -1,0 +1,48 @@
+* {
+    box-sizing: border-box;
+}
+
+.favorites-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    height: 100%;
+    overflow: hidden;
+}
+
+.favorites-header {
+    flex-shrink: 0;
+}
+
+.favorites-header h1 {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.favorites-list {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.no-favorites {
+    grid-column: 1 / -1;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    color: orange;
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    justify-items: start;
+    max-width: none;
+}

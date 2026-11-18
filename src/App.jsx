@@ -317,7 +317,12 @@ function App() {
             <Favorite openFavorites={openFavorites} totalCount={totalCount}/>
 
             {isOnFavorites ? <Modal>
-                <MealFavorites closeFavorites={closeFavorites}/>
+                <MealFavorites closeFavorites={closeFavorites} dataFavorites={dataFavorites} showAdditionalInfo={showAdditionalInfo} deleteCard={deleteCard}/>
+                {mealInfo ? (
+                    <Modal>
+                        <MealInfo mealInfo={mealInfo} closeRecipeForm={closeRecipeForm} loadingInfo={loadingInfo} />
+                    </Modal>
+                ) : errorInfo}
             </Modal> : null}
 
             <MealList filterMeals={filterMeals} showAdditionalInfo={showAdditionalInfo} deleteCard={deleteCard} addToFavorites={addToFavorites}/>
